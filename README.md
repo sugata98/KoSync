@@ -139,18 +139,28 @@ Note the `chat_id` from the response and set `CHAT_ID` in `telegram.conf`.
 
 ## To-Do
 
-- Add script for organizing markups under Book-name folders
-- Add additional backup targets (e.g., Google Drive)
-- Add restore functionality to deploy DB and markups back to device
-- Improve error handling and logging verbosity
-- Add configurable scheduling via cron or udev hooks
+- [ ] Add script for organizing markups under Book-name folders
+- [ ] Add additional backup targets (e.g., Google Drive)
+- [ ] Add restore functionality to deploy DB and markups back to device
+- [ ] Improve error handling and logging verbosity
+- [ ] Add configurable scheduling via cron or udev hooks
 
 ---
 
 ## Done
 
-- Initial sync script for Kobo Libra Color
-- Cloud backup to B2 using rclone
-- Telegram notification on sync completion
-- Markups sync (add & delete)
-- WAL checkpoint for SQLite DB
+- [x] Initial sync script for Kobo Libra Color
+- [x] Cloud backup to B2 using rclone
+- [x] Telegram notification on sync completion
+- [x] Markups sync (add & delete)
+- [x] WAL checkpoint for SQLite DB
+
+---
+
+## Credits & Licenses
+
+- **SQLite** (public domain)  
+  Binaries built from the official SQLite amalgamation (https://sqlite.org). Public-domain software—no attribution required, but appreciated.
+
+- **rclone** (MIT/Apache-2.0)  
+  Binaries built from rclone v1.x.y (https://github.com/rclone/rclone). Licensed under MIT and/or Apache-2.0; see [rclone’s license file](https://github.com/rclone/rclone/blob/master/LICENSE.md) for details.
