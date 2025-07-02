@@ -30,30 +30,12 @@ $RCLONE --config="$CONF" copy "$SRC/KoboReader.sqlite" "$DEST" \
   --update $RCOPY_FAST_FLAGS >> "$LOG" 2>&1 \
   && printf "---- %s DB COPY (if-changed) DONE ----\n" "$(date)" >> "$LOG"
 
-# 3) Copy only new markup images since last run using a marker file
-MARKER=/mnt/onboard/.adds/nm/state/last_sync_marker
-NEW_LIST=/mnt/onboard/.adds/nm/state/new_markups.txt
-
-# Initialize marker if missing
-if [ ! -e "$MARKER" ]; then
-  touch -d "1970-01-01" "$MARKER"
-fi
-
-# Find files newer than marker
-find "$SRC/markups" -type f \( -iname '*.svg' -o -iname '*.jpg' \) \
-  -newer "$MARKER" > "$NEW_LIST"
-
-if [ -s "$NEW_LIST" ]; then
-  COUNT=$(wc -l < "$NEW_LIST")
-  $RCLONE --config="$CONF" copy "$SRC" "$DEST" \
-    --files-from "$NEW_LIST" $RCOPY_FAST_FLAGS >> "$LOG" 2>&1 \
-    && printf "---- %s UPLOADED %d NEW MARKUPS ----\n" "$(date)" "$COUNT" >> "$LOG"
-else
-  printf "---- %s NO NEW MARKUPS TO UPLOAD ----\n" "$(date)" >> "$LOG"
-fi
-
-# Update marker timestamp
-touch "$MARKER"
+# 3) Mirror markups (add & delete), skip unchanged
+$RCLONE --config="$CONF" sync "$SRC/markups" "$DEST/markups" \
+  --include "*.svg" --include "*.jpg" --exclude "*" \
+  --ignore-existing $RCOPY_FAST_FLAGS >> "$LOG" 2>&1 \
+  && printf "---- %s MARKUPS SYNCED (adds & deletes) ----
+" "$(date)" >> "$LOG"
 
 # 4) Calculate duration
 END_TS=$(date +%s)
