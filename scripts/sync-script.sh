@@ -5,6 +5,10 @@ RCLONE=/mnt/onboard/.adds/nm/bin/rclone
 SQLITE=/mnt/onboard/.kobo/KoboReader.sqlite
 WGET=/usr/bin/wget
 
+# Load Telegram credentials
+TELEGRAM_CONF=/mnt/onboard/.config/telegram/telegram.conf
+. "$TELEGRAM_CONF"
+
 # Logging & config
 LOG=/mnt/onboard/SyncNotes.log
 CONF=/mnt/onboard/.config/rclone/rclone.conf
@@ -14,37 +18,37 @@ DEST=b2:KoboSync/kobo
 # Performance tuning flags
 RCOPY_FAST_FLAGS="--fast-list --transfers 8 --checkers 4"
 
-# Telegram
-BOT_TOKEN="7702993686:AAF5l8wQwcqYRn2TifnuseJTk9SZISm49Xw"
-CHAT_ID="747709506"
-
+# 1) Start sync
 printf "---- %s START SYNC ----\n" "$(date)" >> "$LOG"
 START_TS=$(date +%s)
 
-# 1) Merge WAL into main DB
+# 2) Merge WAL into main DB
 /mnt/onboard/.adds/nm/bin/sqlite3 "$SQLITE" "PRAGMA wal_checkpoint(TRUNCATE);" \
   && printf "---- %s WAL CHECKPOINT DONE ----\n" "$(date)" >> "$LOG"
 
-# 2) Copy only the main DB if it changed
+# 3) Copy DB if changed
 $RCLONE --config="$CONF" copy "$SRC/KoboReader.sqlite" "$DEST" \
   --update $RCOPY_FAST_FLAGS >> "$LOG" 2>&1 \
   && printf "---- %s DB COPY (if-changed) DONE ----\n" "$(date)" >> "$LOG"
 
-# 3) Mirror markups (add & delete), skip unchanged
+# 4) Mirror markups (additions & deletions), skip unchanged
 $RCLONE --config="$CONF" sync "$SRC/markups" "$DEST/markups" \
-  --include "*.svg" --include "*.jpg" --exclude "*" \
-  --ignore-existing $RCOPY_FAST_FLAGS >> "$LOG" 2>&1 \
-  && printf "---- %s MARKUPS SYNCED (adds & deletes) ----
-" "$(date)" >> "$LOG"
+  --ignore-existing $RCOPY_FAST_FLAGS \
+  --filter "+ *.svg" \
+  --filter "+ *.jpg" \
+  --filter "- *" >> "$LOG" 2>&1 \
+  && printf "---- %s MARKUPS SYNCED (adds & deletes) ----\n" "$(date)" >> "$LOG"
 
-# 4) Calculate duration
+# 5) Calculate duration
 END_TS=$(date +%s)
 ELAPSED=$((END_TS - START_TS))
 
-# 5) Notify via Telegram (seconds only)
-MSG="✅%20Kobo%20Sync%20complete%21%20Duration%3A%20${ELAPSED}s"
+# 6) Notify via Telegram
+MSG="✅ Kobo Sync complete! Duration: ${ELAPSED}s"
+ENC=$(echo "$MSG" | sed -e 's/ /%20/g' -e 's/!/%%21/g')
 nohup "$WGET" -qO- \
-  "https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${CHAT_ID}&text=${MSG}" \
-  >/dev/null 2>&1 &
+  "https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${CHAT_ID}&text=${ENC}" \
+  >> "$LOG" 2>&1 &
 
+# 7) Complete log
 printf "---- %s COMPLETE (Duration: %ss) ----\n" "$(date)" "$ELAPSED" >> "$LOG"
