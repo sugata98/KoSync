@@ -19,13 +19,15 @@ Bunch of scripts to keep the notes, annotations, and markups for Kobo Libra Colo
 The repository includes pre-built ARMv7 binaries for immediate use:
 
 - `bin/sqlite3` (ELF 32-bit ARM, static build)
-- `bin/rclone`   (ELF 32-bit ARM)
+- `bin/rclone` (ELF 32-bit ARM)
 
 Copy these into NickelMenu’s bin folder on your Kobo:
 
-    cp bin/sqlite3 /mnt/onboard/.adds/nm/bin/sqlite3
-    cp bin/rclone   /mnt/onboard/.adds/nm/bin/rclone
-    chmod +x /mnt/onboard/.adds/nm/bin/{sqlite3,rclone}
+```sh
+cp bin/sqlite3 /mnt/onboard/.adds/nm/bin/sqlite3
+cp bin/rclone   /mnt/onboard/.adds/nm/bin/rclone
+chmod +x /mnt/onboard/.adds/nm/bin/{sqlite3,rclone}
+```
 
 ---
 
@@ -35,43 +37,68 @@ Copy these into NickelMenu’s bin folder on your Kobo:
 
 Create your Rclone config at `/mnt/onboard/.config/rclone/rclone.conf`:
 
-    [b2]
-    type    = b2
-    account = <your-account-id>
-    key     = <your-app-key>
+```sh
+[b2]
+type    = b2
+account = <your-account-id>
+key     = <your-app-key>
+```
 
 Secure it:
 
-    chmod 600 /mnt/onboard/.config/rclone/rclone.conf
+```sh
+chmod 600 /mnt/onboard/.config/rclone/rclone.conf
+```
 
 ### Telegram Credentials
 
 Create `/mnt/onboard/.config/telegram/telegram.conf`:
 
-    BOT_TOKEN=<your-bot-token>
-    CHAT_ID=<your-chat-id>
+```sh
+BOT_TOKEN=<your-bot-token>
+CHAT_ID=<your-chat-id>
+```
 
 Secure it:
 
-    chmod 600 /mnt/onboard/.config/telegram/telegram.conf
+```sh
+chmod 600 /mnt/onboard/.config/telegram/telegram.conf
+```
 
 ### Copy Binaries
 
-    cp bin/sqlite3 /mnt/onboard/.adds/nm/bin/sqlite3
-    cp bin/rclone   /mnt/onboard/.adds/nm/bin/rclone
-    chmod +x /mnt/onboard/.adds/nm/bin/{sqlite3,rclone}
+```sh
+cp bin/sqlite3 /mnt/onboard/.adds/nm/bin/sqlite3
+cp bin/rclone   /mnt/onboard/.adds/nm/bin/rclone
+chmod +x /mnt/onboard/.adds/nm/bin/{sqlite3,rclone}
+```
 
 ### Install the Sync Script
 
-    mkdir -p /mnt/onboard/.adds/nm/scripts
-    cp 90_sync_notes.sh /mnt/onboard/.adds/nm/scripts/90_sync_notes.sh
-    chmod +x /mnt/onboard/.adds/nm/scripts/90_sync_notes.sh
+```sh
+mkdir -p /mnt/onboard/.adds/nm/scripts
+cp 90_sync_notes.sh /mnt/onboard/.adds/nm/scripts/90_sync_notes.sh
+chmod +x /mnt/onboard/.adds/nm/scripts/90_sync_notes.sh
+```
 
 ### Enable in NickelMenu
 
-- Open NickelMenu → Scripts → Manage Scripts
-- Verify that `90_sync_notes.sh` is present and enabled
-- Scripts in `*.sh` run on sleep/reboot by default
+To have NickelMenu run the sync on demand, add the script and a menu entry:
+
+1. Ensure the script is present and executable:
+
+```sh
+cp 90_sync_notes.sh /mnt/onboard/.adds/nm/scripts/90_sync_notes.sh
+chmod +x /mnt/onboard/.adds/nm/scripts/90_sync_notes.sh
+```
+
+2. Add the following to your NickelMenu config (`/mnt/onboard/.adds/nm/config`):
+
+```sh
+menu_item :main :SyncNotes :cmd_spawn :quiet:exec /mnt/onboard/.adds/nm/scripts/90_sync_notes.sh
+```
+
+Now you can select **SyncNotes** from the main menu, and the script will also auto-run on sleep/reboot.
 
 ---
 
@@ -80,8 +107,10 @@ Secure it:
 - In NickelMenu: Scripts → Run script → 90_sync_notes.sh
 - Or over SSH:
 
-    sh /mnt/onboard/.adds/nm/scripts/90_sync_notes.sh
-    tail -f /mnt/onboard/SyncNotes.log
+```sh
+sh /mnt/onboard/.adds/nm/scripts/90_sync_notes.sh
+tail -f /mnt/onboard/SyncNotes.log
+```
 
 ---
 
@@ -90,7 +119,9 @@ Secure it:
 1. Use BotFather to create a bot and copy its token into `telegram.conf`
 2. Send a message to your bot, then run:
 
-    curl "https://api.telegram.org/bot<YOUR_TOKEN>/getUpdates"
+```sh
+curl "https://api.telegram.org/bot<YOUR_TOKEN>/getUpdates"
+```
 
 Note the `chat_id` from the response and set `CHAT_ID` in `telegram.conf`.
 
