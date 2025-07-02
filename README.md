@@ -139,7 +139,7 @@ Note the `chat_id` from the response and set `CHAT_ID` in `telegram.conf`.
 
 ## To-Do
 
-- [ ] Add script for organizing markups under Book-name folders
+- [ ] Add script to be run on system to generate annotations, notes, and markups under Book-name folders to be easily accessible by obsidian.
 - [ ] Create a UI for showing all annotations, notes, and markups under each book
 - [ ] Add additional backup targets (e.g., Google Drive)
 - [ ] Add restore functionality to deploy DB and markups back to device
