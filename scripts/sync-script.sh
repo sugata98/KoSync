@@ -32,8 +32,7 @@ $RCLONE --config="$CONF" copy "$SRC/KoboReader.sqlite" "$DEST" \
 
 # 3) Copy only new markup images since last run
 NEW_LIST=/mnt/onboard/.adds/nm/new_markups.txt
-# List SVG/JPG under .kobo/markups newer than last log entry
-echo "Listing new markups..." >> "$LOG"
+# Generate list of new SVG/JPGs modified after last log entry
 find "$SRC/markups" -type f \( -iname '*.svg' -o -iname '*.jpg' \) \
      -newer "$LOG" > "$NEW_LIST"
 
@@ -41,9 +40,11 @@ if [ -s "$NEW_LIST" ]; then
   COUNT=$(wc -l < "$NEW_LIST")
   $RCLONE --config="$CONF" copy "$SRC" "$DEST" \
     --files-from "$NEW_LIST" $RCOPY_FAST_FLAGS >> "$LOG" 2>&1 \
-    && printf "---- %s UPLOADED %d NEW MARKUPS ----\n" "$(date)" "$COUNT" >> "$LOG"
+    && printf "---- %s UPLOADED %d NEW MARKUPS ----
+" "$(date)" "$COUNT" >> "$LOG"
 else
-  printf "---- %s NO NEW MARKUPS TO UPLOAD ----\n" "$(date)" >> "$LOG"
+  printf "---- %s NO NEW MARKUPS TO UPLOAD ----
+" "$(date)" >> "$LOG"
 fi
 
 # 4) Calculate duration
