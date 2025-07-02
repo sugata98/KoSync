@@ -140,6 +140,7 @@ Note the `chat_id` from the response and set `CHAT_ID` in `telegram.conf`.
 ## To-Do
 
 - [ ] Add script for organizing markups under Book-name folders
+- [ ] Create a UI for showing all annotations, notes, and markups under each book
 - [ ] Add additional backup targets (e.g., Google Drive)
 - [ ] Add restore functionality to deploy DB and markups back to device
 - [ ] Improve error handling and logging verbosity
