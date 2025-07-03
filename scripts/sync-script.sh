@@ -45,9 +45,9 @@ ELAPSED=$((END_TS - START_TS))
 
 # 6) Notify via Telegram
 MSG="✅ Kobo Sync complete! Duration: ${ELAPSED}s"
-ENC=$(echo "$MSG" | sed -e 's/ /%20/g' -e 's/!/%%21/g')
+ENC=$(printf '%s' "$MSG" | sed -e 's/ /%20/g' -e 's/!/%21/g')
 nohup "$WGET" -qO- \
-  "https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${CHAT_ID}&text=${ENC}" \
+  'https://api.telegram.org/bot'"${BOT_TOKEN}"'/sendMessage?chat_id='"${CHAT_ID}"'&text='"${ENC}" \
   >> "$LOG" 2>&1 &
 
 # 7) Complete log
