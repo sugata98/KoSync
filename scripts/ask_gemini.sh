@@ -32,7 +32,9 @@ chmod +x "$CURL_BIN" 2>> "$LOG_FILE"
 # Verify curl exists
 if [ ! -x "$CURL_BIN" ]; then
     echo "ERROR: Static curl not found at $CURL_BIN" >> "$LOG_FILE"
-    qndb -m mng -t 3000 -c "Error" -n "curl binary not found in scripts folder"
+    echo "Attempting qndb toast for curl error..." >> "$LOG_FILE"
+    qndb -m mng -t 3000 -c "Error" -n "curl binary not found in scripts folder" >> "$LOG_FILE" 2>&1
+    echo "qndb toast completed with exit code: $?" >> "$LOG_FILE"
     exit 1
 fi
 
@@ -60,7 +62,9 @@ TEXT="$RAW_TEXT"
 if [ -z "$TEXT" ]; then
     # Show error toast if selection failed
     echo "ERROR: No text selected" >> "$LOG_FILE"
-    qndb -m mng -t 2000 -c "Error" -n "No text selected."
+    echo "Attempting qndb toast for text selection error..." >> "$LOG_FILE"
+    qndb -m mng -t 2000 -c "Error" -n "No text selected." >> "$LOG_FILE" 2>&1
+    echo "qndb toast completed with exit code: $?" >> "$LOG_FILE"
     exit 1
 fi
 
@@ -165,10 +169,6 @@ echo "JSON payload constructed (first 200 chars): ${JSON_DATA:0:200}..." >> "$LO
 
 # --- 5. EXECUTION ---
 
-# Ensure Network is up (Non-blocking attempt)
-echo "Attempting to wake WiFi..." >> "$LOG_FILE"
-qndb -m pwc --timeout 5
-
 # Send Request using static curl
 # -k: Allow insecure SSL (fixes old Kobo certs)
 # -s: Silent mode
@@ -190,7 +190,15 @@ echo "Response timestamp: $(date +%s)" >> "$LOG_FILE"
 
 # --- 6. USER FEEDBACK (The Native Dialog) ---
 
+echo "Preparing user feedback output..." >> "$LOG_FILE"
+
+# Helper function to wrap text at ~45 chars (Kobo modal is narrow)
+wrap_text() {
+    echo "$1" | fold -s -w 45
+}
+
 if [ $CURL_EXIT -eq 0 ] && [ -n "$RESPONSE" ]; then
+    echo "SUCCESS path - displaying response to user" >> "$LOG_FILE"
     # Success: Output to stdout (NickelMenu's cmd_output will display this)
     # Backend returns a SHORT summary (1-2 sentences, max 200 chars)
     # Full analysis is sent to Telegram automatically
@@ -198,20 +206,22 @@ if [ $CURL_EXIT -eq 0 ] && [ -n "$RESPONSE" ]; then
     echo "Response: '$RESPONSE'" >> "$LOG_FILE"
     
     # Output to stdout - NickelMenu will show this in a dialog
-    echo "✨ AI Explanation"
+    # NOTE: Avoid emojis - Kobo doesn't render them properly
+    echo "=== AI Explanation ==="
     echo ""
-    echo "$RESPONSE"
+    wrap_text "$RESPONSE"
     echo ""
-    echo "📱 Full analysis sent to Telegram"
+    echo "---"
+    echo "Full analysis sent to Telegram"
     
     echo "Dialog output sent to stdout" >> "$LOG_FILE"
 else
     # Error: Output error to stdout
-    echo "ERROR: curl failed with exit code $CURL_EXIT or empty response" >> "$LOG_FILE"
+    echo "ERROR path - curl failed with exit code $CURL_EXIT or empty response" >> "$LOG_FILE"
     echo "Response (if any): $RESPONSE" >> "$LOG_FILE"
     
-    # Output to stdout
-    echo "❌ Connection Error"
+    # Output to stdout (no emojis for Kobo compatibility)
+    echo "=== Connection Error ==="
     echo ""
     echo "Could not reach AI service."
     echo "Please check WiFi connection."
@@ -219,5 +229,6 @@ else
     echo "Error code: $CURL_EXIT"
 fi
 
+echo "About to finish script - output should be sent to NickelMenu now" >> "$LOG_FILE"
 echo "Script finished at: $(date)" >> "$LOG_FILE"
 echo "" >> "$LOG_FILE"
